@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "Validate the Microsoft Oauth2 ID token"
   spec.description = "Validate the id token from Microsoft oauth2 service"
-  spec.homepage = "https://github.com/quangquach/ms-id-token-validator"
+  spec.homepage = "https://github.com/QQism/ms-id-token-validator"
   spec.license = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
