@@ -63,7 +63,7 @@ RSpec.describe MsIdToken::Validator do
           header, encoded_payload, signature = id_token.split(".")
           fake_payload = JSON.parse(Base64.decode64(encoded_payload), symbolize_names: true)
           fake_payload[:sub] = "change-sub"
-          fake_id_token = [header, Base64.encode64(fake_payload.to_json), signature].join(".")
+          fake_id_token = [header, Base64.strict_encode64(fake_payload.to_json), signature].join(".")
 
           expect {
             validator.check(fake_id_token, aud)
