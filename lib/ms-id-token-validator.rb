@@ -1,30 +1,39 @@
-require 'net/http'
-require 'json/jwt'
+require "net/http"
+require "json/jwt"
 
 module MsIdToken
   class BadIdTokenFormat < StandardError; end
+
   class BadIdTokenHeaderFormat < StandardError; end
+
   class BadIdTokenPayloadFormat < StandardError; end
+
   class UnableToFetchMsConfig < StandardError; end
+
   class UnableToFetchMsCerts < StandardError; end
+
   class BadPublicKeysFormat < StandardError; end
+
   class UnableToFindMsCertsUri < StandardError; end
+
   class InvalidAudience < StandardError; end
+
   class IdTokenExpired < StandardError; end
+
   class IdTokenNotYetValid < StandardError; end
 
   class Validator
-    MS_CONFIG_URI = 'https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration'.freeze
+    MS_CONFIG_URI = "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration".freeze
     CACHED_CERTS_EXPIRY = 3600
-    TOKEN_TYPE = 'JWT'.freeze
-    TOKEN_ALGORITHM = 'RS256'.freeze
+    TOKEN_TYPE = "JWT".freeze
+    TOKEN_ALGORITHM = "RS256".freeze
 
-    def initialize(options={})
+    def initialize(options = {})
       @cached_certs_expiry = options.fetch(:expiry, CACHED_CERTS_EXPIRY)
     end
 
     def check(id_token, audience)
-      encoded_header, encoded_payload, signature = id_token.split('.')
+      encoded_header, encoded_payload, signature = id_token.split(".")
 
       raise BadIdTokenFormat if encoded_payload.nil? || signature.nil?
 
@@ -51,15 +60,15 @@ module MsIdToken
 
     def verify_payload(payload, audience)
       if payload[:aud].nil? ||
-         payload[:exp].nil? ||
-         payload[:nbf].nil? ||
-         payload[:sub].nil? ||
-         payload[:iss].nil? ||
-         payload[:iat].nil? ||
-         payload[:tid].nil? ||
-         (
-          payload[:iss].match(/https:\/\/login\.microsoftonline\.com\/(.+)\/v2\.0/).nil? &&
-          payload[:iss].match(/https:\/\/sts\.windows\.net\/(.+)\//).nil?
+          payload[:exp].nil? ||
+          payload[:nbf].nil? ||
+          payload[:sub].nil? ||
+          payload[:iss].nil? ||
+          payload[:iat].nil? ||
+          payload[:tid].nil? ||
+          (
+           payload[:iss].match(/https:\/\/login\.microsoftonline\.com\/(.+)\/v2\.0/).nil? &&
+           payload[:iss].match(/https:\/\/sts\.windows\.net\/(.+)\//).nil?
          )
         raise BadIdTokenPayloadFormat
       end
