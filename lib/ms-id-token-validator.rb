@@ -1,5 +1,6 @@
-require "net/http"
-require "json/jwt"
+require "net/http/persistent"
+require "jwt"
+require "active_support/all"
 
 module MsIdToken
   class BadIdTokenFormat < StandardError; end
@@ -37,12 +38,16 @@ module MsIdToken
 
       raise BadIdTokenFormat if encoded_payload.nil? || signature.nil?
 
-      header = JSON.parse(Base64.decode64(encoded_header), symbolize_names: true)
-
-      public_keys = JSON::JWK::Set.new(ms_public_keys)
-
-      payload = JSON::JWT.decode(id_token, public_keys).symbolize_keys
-
+      # header = JSON.parse(Base64.decode64(encoded_header), symbolize_names: true)
+      
+      # signature verification with microsoft public keys
+      jwks = ms_public_keys
+      decoded_token = JWT.decode(id_token, nil, true, { algorithms: [TOKEN_ALGORITHM], jwks: jwks})
+      
+      # validate header and payload
+      header = decoded_token[1].deep_symbolize_keys
+      verify_header(header)
+      payload = decoded_token[0].deep_symbolize_keys
       verify_payload(payload, audience)
 
       payload
@@ -53,7 +58,9 @@ module MsIdToken
     def verify_header(header)
       valid_header = header[:typ] == TOKEN_TYPE && header[:alg] == TOKEN_ALGORITHM
 
-      valid_header &= !(header[:kid].nil? && header[:x5t].nil?)
+      # "x5t" claim is for version 1.0 only
+      # valid_header &= !(header["kid"].nil? && header["x5t"].nil?)
+      valid_header &= !(header[:kid].nil?)
 
       raise BadIdTokenHeaderFormat unless valid_header
     end
